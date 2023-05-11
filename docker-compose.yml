@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    container_name: database
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=P@assword
+      - MYSQL_DATABASE=example_db
+      - MYSQL_USER=example
+      - MYSQL_PASSWORD=P@assword
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./initdb:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/mysql
+    networks:
+      - bp-networks
+  phpmyadmin:
+    container_name: phpmyadmin-example
+    restart: always
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMAHOST=db
+    ports:
+      - "8081:80"
+    networks:
+      - bp-networks
+  api:
+    container_name: example-api
+    restart: always
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_DATABASE_NAME=example_db
+      - DB_USERNAME=example
+      - DB_PASSWORD=P@assword
+      - DB_HOST=db
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+    networks:
+      - bp-networks
+
+volumes:
+  db_data:
+
+networks:
+  bp-networks:
+    driver: bridge
+
